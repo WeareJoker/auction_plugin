@@ -7,11 +7,11 @@ import os
 import requests
 import pdb
 
-browser = webdriver.PhantomJS(executable_path='/usr/local/share/phantomjs-1.9.7-linux-x86_64/bin/phantomjs')
-if system() == 'Windows':
-    browser = web.driver.phantomjs()
+#browser = webdriver.PhantomJS(executable_path='/usr/local/share/phantomjs-1.9.7-linux-x86_64/bin/phantomjs')
+#if system() == 'Windows':
+#    browser = web.driver.phantomjs()
 
-f=open("output.html","wb");
+#f=open("output.html","wb");
 
 def get_cookie(packet):
     cookie_data=[]
@@ -64,7 +64,13 @@ def auction_crawling(cookie_dict):
     request = requests.get(url, cookies=cookie_dict)
     data = request.content
     soup = BeautifulSoup(data, 'lxml')
-    
+
+    userid = soup.findAll('span', attrs={'id':'lblMemberId'})
+    username = soup.findAll('span', attrs={'id':'lblMemberName'})
+
+    username = username[0].text
+    userid = userid[0].text
+
     ip_line2 = soup.findAll('td', attrs={'class':'ip line2'})
 
     address= ip_line2[0].findAll('input')
@@ -101,6 +107,7 @@ def auction_crawling(cookie_dict):
     email_id = txt_email_id[0]['value'].encode('utf-8')
     email_domain = txt_email_domain[0]['value'].encode('utf-8')
 
+    print username, userid
     print home_tel_1,"-", home_tel_2,"-", home_tel_3
     print mobile_tel_1,"-", mobile_tel_2,"-", mobile_tel_3
     print email_id,"@", email_domain
@@ -111,11 +118,6 @@ def auction_crawling(cookie_dict):
     browser.get(url)
     soup = BeautifulSoup(browser.page_source)
 '''
-
-
-
-
-
 
 if __name__=='__main__':
    # filename = raw_input("Input FIle Name : ")
@@ -134,5 +136,3 @@ if __name__=='__main__':
                 cookie_dict = parse_cookie(cookie_data)
                 auction_crawling(cookie_dict)
 '''
-
-f.close()
