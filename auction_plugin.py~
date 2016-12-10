@@ -16,8 +16,7 @@ import pdb
 def get_cookie(packet):
     cookie_data=[]
 
-    pdb.set_trace()
-
+    interpark=re.compile("Host: (.*interpark.com)\r\n")
     auction=re.compile("Host: (.*auction.co.kr)\r\n")
 
     try:

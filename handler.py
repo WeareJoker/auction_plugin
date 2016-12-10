@@ -1,22 +1,13 @@
 #-*- coding:utf-8 -*-
-from selenium import webdriver
+from database import Session
 from bs4 import BeautifulSoup
-from platform import system
 from scapy.all import *
-import os
 import requests
-import pdb
 
-#browser = webdriver.PhantomJS(executable_path='/usr/local/share/phantomjs-1.9.7-linux-x86_64/bin/phantomjs')
-#if system() == 'Windows':
-#    browser = web.driver.phantomjs()
+session = Session()
 
-#f=open("output.html","wb");
-
-def get_cookie(packet):
+def handler(packet):
     cookie_data=[]
-
-    pdb.set_trace()
 
     auction=re.compile("Host: (.*auction.co.kr)\r\n")
 
@@ -42,25 +33,23 @@ def parse_cookie(cookie_data):
     cookie_dict={}
     cookie_list=[]
 
-    if len(cookie_data) != 0:
-        cookie_list = cookie_data.split('; ')
-        for cookie in cookie_list:
-            spliter = cookie.find("=")
-            cookie_name = cookie[:spliter]
-            end_point = cookie.find(";")
+    cookie_list = cookie_data.split('; ')
+    for cookie in cookie_list:
+        spliter = cookie.find("=")
+        cookie_name = cookie[:spliter]
+        end_point = cookie.find(";")
 
-            if end_point != -1:
-                cookie_value = cookie[spliter + 1 : -1]
-            else:
-                cookie_value = cookie[spliter + 1 :]
+        if end_point != -1:
+            cookie_value = cookie[spliter + 1 : -1]
+        else:
+            cookie_value = cookie[spliter + 1 :]
 
-            cookie_dict[cookie_name] = cookie_value
+        cookie_dict[cookie_name] = cookie_value
 
     auction_crawling(cookie_dict)
 
 
 def auction_crawling(cookie_dict):
-    #f.write(cookie_dict)
     url = 'https://memberssl.auction.co.kr/membership/MyInfo/MyInfo.aspx'
     request = requests.get(url, cookies=cookie_dict)
     data = request.content
@@ -69,8 +58,8 @@ def auction_crawling(cookie_dict):
     userid = soup.findAll('span', attrs={'id':'lblMemberId'})
     username = soup.findAll('span', attrs={'id':'lblMemberName'})
 
-    username = username[0].text
-    userid = userid[0].text
+    user_name = username[0].text
+    user_id = userid[0].text
 
     ip_line2 = soup.findAll('td', attrs={'class':'ip line2'})
 
@@ -108,32 +97,21 @@ def auction_crawling(cookie_dict):
     email_id = txt_email_id[0]['value'].encode('utf-8')
     email_domain = txt_email_domain[0]['value'].encode('utf-8')
 
-    print username, userid
-    print home_tel_1,"-", home_tel_2,"-", home_tel_3
-    print mobile_tel_1,"-", mobile_tel_2,"-", mobile_tel_3
-    print email_id,"@", email_domain
-    print address_1, address_2, address_3
-
-'''
-    browser.add_cookie(cookie_dict)
-    browser.get(url)
-    soup = BeautifulSoup(browser.page_source)
-'''
-
-if __name__=='__main__':
-   # filename = raw_input("Input FIle Name : ")
-    #now_path = os.path.dirname(os.path.abspath(__file__))
-    #pcap_path = os.path.join(now_path, filename)
-    #pcap = rdpcap(pcap_path)
+    tel_home = home_tel_1 +"-"+ home_tel_2 +"-"+ home_tel_3
+    tel_mobile = mobile_tel_1 +"-"+ mobile_tel_2 +"-"+ mobile_tel_3
+    email = email_id +"@"+ email_domain
+    address = address_2 + address_3
     
-    sniff(iface='eth0', prn=get_cookie, filter="tcp port 80")
+    session.add(Auction(user_name, user_id, tel_home, tel_mobile, email, address))
+    session.commit
+
 '''
-    for packet in pcap:
-        cookie_dict={}
-        cookie_data=[]
-        if packet.haslayer("TCP"):
-            cookie_data = get_cookie(packet)
-            if cookie_data is not None :
-                cookie_dict = parse_cookie(cookie_data)
-                auction_crawling(cookie_dict)
+    __tablename__ = 'auction'
+    id = Column(Integer, primary_key=True)
+    user_name = Column(String(10), nullable=False)
+    user_id = Column(String(20), nullable=False)
+    tel_home = Column(String(15), nullable=False)
+    tel_mobile = Column(String(15), nullable=False)
+    email = Column(String(30), nullable=False)
+    address = Column(String(50))
 '''
