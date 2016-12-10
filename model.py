@@ -22,4 +22,4 @@ class Auction(Base):
         self.address = address
 
     def __repr__(self):
-        return "<Example %s>" % self.user_name
+        return "<Auction %s>" % self.user_name
